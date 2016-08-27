@@ -1,0 +1,16 @@
+{
+  "name": "life_container",
+  "version": "1.0.0",
+  "description": "A server app that is part of Game of Docker Life",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "node /index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Henri Korhonen",
+  "license": "MIT",
+  "dependencies": {
+    "restify": "^4.1.1"
+  }
+}
