@@ -1,0 +1,11 @@
+version: "2"
+
+services:
+  cell_container:
+    image: cell-test
+    container_name: cell_0_0
+    ports:
+      - "8000:8000"
+    environment:
+      - X=1
+      - Y=1
