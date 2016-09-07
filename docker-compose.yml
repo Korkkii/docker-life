@@ -1,7 +1,17 @@
 version: "2"
 
 services:
-  cell_container:
+  game:
+    build:
+      context: ./
+    image: game-test
+    container_name: game_container
+    ports:
+      - "8001:8000"
+
+  cell:
+    build:
+      context: ./cell_container
     image: cell-test
     container_name: cell_0_0
     ports:

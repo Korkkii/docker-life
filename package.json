@@ -1,0 +1,16 @@
+{
+  "name": "dockerlife",
+  "version": "1.0.0",
+  "description": "A Game of Life using Docker containers as cells",
+  "main": "index.js",
+  "scripts": {
+    "start": "node /index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Henri Korhone",
+  "license": "MIT",
+  "dependencies": {
+    "request": "^2.79.0",
+    "restify": "^4.1.1"
+  }
+}
