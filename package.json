@@ -10,6 +10,7 @@
   "author": "Henri Korhone",
   "license": "MIT",
   "dependencies": {
+    "handlebars": "^4.0.6",
     "request": "^2.79.0",
     "restify": "^4.1.1"
   }

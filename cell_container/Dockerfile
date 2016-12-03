@@ -3,7 +3,7 @@ FROM node:latest
 COPY package.json /package.json
 RUN npm install
 
-COPY index.js /index.js
+COPY cell_index.js /index.js
 
 EXPOSE 8000
 

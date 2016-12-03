@@ -7,15 +7,18 @@ services:
     image: game-test
     container_name: game_container
     ports:
-      - "8001:8000"
+      - "7999:8000"
 
-  cell:
+  {{#each cells}}
+  cell_{{X}}_{{Y}}:
     build:
       context: ./cell_container
     image: cell-test
-    container_name: cell_0_0
+    container_name: cell_{{X}}_{{Y}}
     ports:
-      - "8000:8000"
+      - "80{{X}}{{Y}}:8000"
     environment:
-      - X=1
-      - Y=1
+      - X={{X}}
+      - Y={{Y}}
+
+  {{/each}}
