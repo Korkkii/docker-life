@@ -10,8 +10,8 @@
   "author": "Henri Korhone",
   "license": "MIT",
   "dependencies": {
+    "dockerode": "^2.3.1",
     "handlebars": "^4.0.6",
-    "request": "^2.79.0",
-    "restify": "^4.1.1"
+    "request": "^2.79.0"
   }
 }

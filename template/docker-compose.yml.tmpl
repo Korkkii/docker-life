@@ -1,14 +1,6 @@
 version: "2"
 
 services:
-  game:
-    build:
-      context: ./
-    image: game-test
-    container_name: game_container
-    ports:
-      - "7999:8000"
-
   {{#each cells}}
   cell_{{X}}_{{Y}}:
     build:
