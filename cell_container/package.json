@@ -11,6 +11,9 @@
   "author": "Henri Korhonen",
   "license": "MIT",
   "dependencies": {
+    "bluebird": "^3.4.7",
+    "enum": "^2.4.0",
+    "request": "^2.79.0",
     "restify": "^4.1.1"
   }
 }
