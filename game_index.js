@@ -66,7 +66,11 @@ function updateGrid(gridPromise) {
 function printGrid(grid) {
   return getGenerationGridValues(grid)
     .then((printGrid) => {
-      console.log(printGrid);
+      console.log(printGrid.map((row) => {
+        return row.map((value) => {
+          return value == true ? 'X' : 'O'
+        })
+      }));
       console.log('\n');
       return printGrid
     })

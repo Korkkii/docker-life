@@ -4,6 +4,8 @@ This repository contains
 [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway's_Game_of_Life)
 game created using [Docker](https://www.docker.com/) containers.
 
+The game prints the generation to the console, where `X` is alive and `O` is dead.
+
 ## Setup
 
 ### Requirements
