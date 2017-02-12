@@ -6,21 +6,23 @@ var fs = Promise.promisifyAll(require("fs"));
 var Docker = require("dockerode");
 var docker = new Docker();
 Promise.promisifyAll(docker);
+var size = 0;
 var gameGrid = createGameGrid();
-var size = 3;
-updateGrid(gameGrid)
+gameGrid.then(printGrid).then(updateGrid).then(updateGrid).then(updateGrid).then(updateGrid)
 
 function createGameGrid() {
   return fs.readFileAsync("./gamegrid.txt", "utf8").then((text) => {
     var charArray = [...text];
     var gridValues = charArray.filter((char) => {return char != '\n'});
+    size = charArray.findIndex((char) => {return char == '\n'});
     var grid = [];
 
-    for (var j = 0; j < 3; j++) {
+    for (var j = 0; j < size; j++) {
       var row = [];
 
-      for (var i = 0; i < 3; i++) {
-        var index = 3 * j + i;
+      for (var i = 0; i < size; i++) {
+        var index = size * j + i;
+
         var container = createContainer(i, j);
         var runOnStart = gridValues[index] == 1;
 
@@ -33,7 +35,7 @@ function createGameGrid() {
 
       grid.push(Promise.all(row).then((result) => {return result;}));
     }
-    return Promise.all(grid).then((result) => {return result;});
+    return Promise.all(grid);
   })
 }
 
@@ -46,8 +48,8 @@ function createContainer(i, j) {
       }]
     }
   };
-  return docker.createContainerAsync({Image: "cell-test",
-    name: `cell_${i}_${j}`, Env: [`X=${i}`, `Y=${j}`], HostConfig: hostConfig});
+  return docker.createContainerAsync({Image: "dockerlife-cell",
+    name: `cell_${j}_${i}`, Env: [`X=${i}`, `Y=${j}`], HostConfig: hostConfig});
 }
 
 function startContainer(containerPromise) {
@@ -58,26 +60,36 @@ function startContainer(containerPromise) {
 }
 
 function updateGrid(gridPromise) {
-  return nextGenerationGrid(gridPromise);
+  return nextGenerationGrid(gridPromise).then(printGrid)
+}
+
+function printGrid(grid) {
+  return getGenerationGridValues(grid)
+    .then((printGrid) => {
+      console.log(printGrid);
+      console.log('\n');
+      return printGrid
+    })
+    .thenReturn(grid);
 }
 
 function nextGenerationGrid(grid) {
-  var currentGenerationGrid = getCurrentGridValues(grid);
-  return grid.map((row) => {
-    return Promise.resolve(row).map((cell) => {
-      return Promise.join(containerInfo(cell.id), currentGenerationGrid, updateContainer);;
+  var currentGenerationGrid = getGenerationGridValues(grid);
+  return Promise.resolve(grid).each((row) => {
+    return Promise.resolve(row).each((cell) => {
+      return Promise.join(containerInfo(cell.id), currentGenerationGrid, updateContainer);
     });
-  })
+  });
 }
 
-function getCurrentGridValues(grid) {
-  return grid.map((row) => {
+function getGenerationGridValues(grid) {
+  return Promise.all(grid.map((row) => {
     return Promise.all(row.map((container) => {
       return containerInfo(container.id).then((data) => {
         return data.State.Running;
       });
     }));
-  });
+  }));
 }
 
 function containerInfo(containerId) {
@@ -118,13 +130,13 @@ function updateContainer(info, grid) {
 
 function calculateNeighbours(info, grid) {
   var envVariables = info.Config.Env;
-  var x = envVariables[0][2];
-  var y = envVariables[1][2];
+  var x = parseInt(envVariables[0][2]);
+  var y = parseInt(envVariables[1][2]);
 
   var N = 0;
-  for (var i = Math.max(0, x - 1); i <= Math.min(x + 1, size - 1); i++) {
-    for (var j = Math.max(0, y - 1); j <= Math.min(y + 1, size - 1); j++) {
-      if ((i != x || y != j) && grid[j][i] === true) {
+  for (var j = Math.max(0, y - 1); j <= Math.min(y + 1, size - 1); j++) {
+    for (var i = Math.max(0, x - 1); i <= Math.min(x + 1, size - 1); i++) {
+      if (!(i == x && j == y) && grid[j][i] === true) {
         N += 1;
       }
     }

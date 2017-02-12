@@ -4,9 +4,9 @@ var Enum = require("enum");
 var state = new Enum({'ALIVE' : 1, 'DEAD' : 0});
 var restify = require("restify");
 var environment = process.env;
-var x = environment.X;
-var y = environment.Y;
-var size = 3;
+var x = parseInt(environment.X);
+var y = parseInt(environment.Y);
+var size = 5;
 var server = restify.createServer();
 var Promise = require("bluebird");
 var request = Promise.promisify(require("request"));
@@ -14,9 +14,10 @@ Promise.promisifyAll(request);
 
 function calculateNextGenerationValue(currentGenerationGrid) {
   var N = 0;
-  for (var i = Math.max(0, x - 1); i <= Math.min(x + 1, size - 1); i++) {
-    for (var j = Math.max(0, y - 1); j <= Math.min(y + 1, size - 1); j++) {
-      if ((i != x || y != j) && currentGenerationGrid[j][i] === true) {
+
+  for (var j = Math.max(0, y - 1); j <= Math.min(y + 1, size - 1); j++) {
+    for (var i = Math.max(0, x - 1); i <= Math.min(x + 1, size - 1); i++) {
+      if (!(i == x && j == y) && currentGenerationGrid[j][i] === true) {
         N += 1;
       }
     }
@@ -44,19 +45,8 @@ function respond(req, res, next) {
   next();
 }
 
-function askValue(req, res, next) {
-  if (req.params.generation == value) {
-    res.send({value: value});
-  } else {
-    res.send({value: value});
-  }
-
-  next();
-}
-
 server.use(restify.queryParser());
 server.use(restify.bodyParser());
 server.post("/update", respond);
-server.get("/value", askValue);
 
 server.listen(8000);
