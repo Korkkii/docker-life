@@ -14,10 +14,10 @@ Promise.promisifyAll(request);
 
 function calculateNextGenerationValue(currentGenerationGrid) {
   var N = 0;
-  for (var i = Math.max(0, x - 1); i < Math.min(x + 1, size - 1); i++) {
-    for (var j = Math.max(0, y - 1); j < Math.min(y + 1, size - 1); j++) {
-      if (i != j) {
-        N += currentGenerationGrid[j][i];
+  for (var i = Math.max(0, x - 1); i <= Math.min(x + 1, size - 1); i++) {
+    for (var j = Math.max(0, y - 1); j <= Math.min(y + 1, size - 1); j++) {
+      if ((i != x || y != j) && currentGenerationGrid[j][i] === true) {
+        N += 1;
       }
     }
   }
