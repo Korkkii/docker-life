@@ -16,6 +16,7 @@ var generation = [
   [0, 1, 0],
   [0, 0, 0]
 ];
+var bunyan = require("bunyan")
 
 function getNeighbourCells(size) {
   var cells = [];
@@ -59,30 +60,35 @@ function calculateCellValue(neighboursAlive) {
 }
 
 function respond(req, res, next) {
-  var previousGeneration = generation;
-  var nextGeneration = generation;
-  var nextGenNumber = currentGeneration + 1;
-  var nextGenValue = calculateNextGenerationValue();
-
-  if (nextGenValue == state.DEAD) {
-    res.send("DEAD");
-    server.close();
-    next();
-  } else {
-    Promise.map(neighbourCells, (cell) => {
-      return request.getAsync({url: cell.url, qs: {generation: nextGenNumber}}).then((result) => {
-        nextGeneration[cell.j][cell.i] = 1;
-      }, (err) => {
-        nextGeneration[cell.j][cell.i] = 0;
-      })
-    }).then(() => {
-      generation = nextGeneration;
-      value = nextGenValue;
-      currentGeneration = nextGenNumber;
-      res.send({"generation": generation, "number": nextGenNumber, "value": value});
-      next();
-    })
-  }
+  console.log(req)
+  console.log(req.body)
+  // res.send(JSON.parse(req.body))
+  res.send(req.body)
+  next()
+  // var previousGeneration = generation;
+  // var nextGeneration = generation;
+  // var nextGenNumber = currentGeneration + 1;
+  // var nextGenValue = calculateNextGenerationValue();
+  //
+  // if (nextGenValue == state.DEAD) {
+  //   res.send("DEAD");
+  //   server.close();
+  //   next();
+  // } else {
+  //   Promise.map(neighbourCells, (cell) => {
+  //     return request.getAsync({url: cell.url, qs: {generation: nextGenNumber}}).then((result) => {
+  //       nextGeneration[cell.j][cell.i] = 1;
+  //     }, (err) => {
+  //       nextGeneration[cell.j][cell.i] = 0;
+  //     })
+  //   }).then(() => {
+  //     generation = nextGeneration;
+  //     value = nextGenValue;
+  //     currentGeneration = nextGenNumber;
+  //     res.send({"generation": generation, "number": nextGenNumber, "value": value});
+  //     next();
+  //   })
+  // }
 }
 
 function askValue(req, res, next) {
@@ -96,7 +102,16 @@ function askValue(req, res, next) {
 }
 
 server.use(restify.queryParser());
-server.get("/", respond);
+server.use(restify.bodyParser());
+// server.on('after', restify.auditLogger({
+//   log: bunyan.createLogger({
+//     name: 'audit',
+//     stream: process.stdout,
+//     serializers: {req: bunyan.stdSerializers.req}
+//   }),
+//   body: true
+// }));
+server.post("/update", respond);
 server.get("/value", askValue);
 
 server.listen(8000);
