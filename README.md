@@ -19,6 +19,8 @@ The game prints the generation to the console, where `X` is alive and `O` is dea
 - Install dependencies with `npm install`
 - Build Docker of Life cell image with `npm build`
 - Run Docker of Life with `npm start`
+  - Number of generations run can be specified with arguments e.g. `npm start 5`
+  - Default number of generations run is 3
 
 ## Changing the initial state
 

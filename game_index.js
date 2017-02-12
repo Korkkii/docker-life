@@ -6,9 +6,20 @@ var fs = Promise.promisifyAll(require("fs"));
 var Docker = require("dockerode");
 var docker = new Docker();
 Promise.promisifyAll(docker);
+var minimist = require("minimist");
+var args = minimist(process.argv.slice(2));
+var generationCount = args._[0] ? args._[0] : 3;
 var size = 0;
-var gameGrid = createGameGrid();
-gameGrid.then(printGrid).then(updateGrid).then(updateGrid).then(updateGrid).then(updateGrid)
+var gameGrid = createGameGrid().then(printGrid);
+setupGenerations(gameGrid, generationCount);
+
+function setupGenerations(gameGrid, amount) {
+  var grid = gameGrid;
+  for (var i = 1; i < amount; i++) {
+    grid = grid.then(updateGrid);
+  };
+  return grid;
+}
 
 function createGameGrid() {
   return fs.readFileAsync("./gamegrid.txt", "utf8").then((text) => {
