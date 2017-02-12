@@ -4,45 +4,20 @@ var Enum = require("enum");
 var state = new Enum({'ALIVE' : 1, 'DEAD' : 0});
 var restify = require("restify");
 var environment = process.env;
+var x = environment.X;
+var y = environment.Y;
+var size = 3;
 var server = restify.createServer();
 var Promise = require("bluebird");
 var request = Promise.promisify(require("request"));
 Promise.promisifyAll(request);
-var neighbourCells = getNeighbourCells(3);
-var currentGeneration = 0;
-var value = state.ALIVE;
-var generation = [
-  [0, 0, 0],
-  [0, 1, 0],
-  [0, 0, 0]
-];
-var bunyan = require("bunyan")
 
-function getNeighbourCells(size) {
-  var cells = [];
-  for (var x = Math.max(0, environment.X - 1); x <= Math.min(environment.X + 1, size - 1); x++) {
-    for (var y = Math.max(0, environment.Y - 1); y <= Math.min(environment.Y + 1, size - 1); y++) {
-      if (x != environment.X || y != environment.Y) {
-        var i = x - (environment.X - 1);
-        var j = y - (environment.Y - 1);
-        var cell = {
-          "i": i,
-          "j": j,
-          "url": `http://cell_${x}_${y}:8000/value`
-        };
-        cells.push(cell);
-      }
-    }
-  }
-  return cells;
-}
-
-function calculateNextGenerationValue() {
+function calculateNextGenerationValue(currentGenerationGrid) {
   var N = 0;
-  for (var i = 0; i < 2; i++) {
-    for (var j = 0; j < 2; j++) {
+  for (var i = Math.max(0, x - 1); i < Math.min(x + 1, size - 1); i++) {
+    for (var j = Math.max(0, y - 1); j < Math.min(y + 1, size - 1); j++) {
       if (i != j) {
-        N += generation[j][i];
+        N += currentGenerationGrid[j][i];
       }
     }
   }
@@ -60,35 +35,13 @@ function calculateCellValue(neighboursAlive) {
 }
 
 function respond(req, res, next) {
-  console.log(req)
-  console.log(req.body)
-  // res.send(JSON.parse(req.body))
-  res.send(req.body)
-  next()
-  // var previousGeneration = generation;
-  // var nextGeneration = generation;
-  // var nextGenNumber = currentGeneration + 1;
-  // var nextGenValue = calculateNextGenerationValue();
-  //
-  // if (nextGenValue == state.DEAD) {
-  //   res.send("DEAD");
-  //   server.close();
-  //   next();
-  // } else {
-  //   Promise.map(neighbourCells, (cell) => {
-  //     return request.getAsync({url: cell.url, qs: {generation: nextGenNumber}}).then((result) => {
-  //       nextGeneration[cell.j][cell.i] = 1;
-  //     }, (err) => {
-  //       nextGeneration[cell.j][cell.i] = 0;
-  //     })
-  //   }).then(() => {
-  //     generation = nextGeneration;
-  //     value = nextGenValue;
-  //     currentGeneration = nextGenNumber;
-  //     res.send({"generation": generation, "number": nextGenNumber, "value": value});
-  //     next();
-  //   })
-  // }
+  var currentGeneration = req.body.grid;
+  var nextGenValue = calculateNextGenerationValue(currentGeneration);
+  res.send({value: nextGenValue});
+  if (nextGenValue == state.DEAD) {
+    server.close()
+  }
+  next();
 }
 
 function askValue(req, res, next) {
@@ -103,14 +56,6 @@ function askValue(req, res, next) {
 
 server.use(restify.queryParser());
 server.use(restify.bodyParser());
-// server.on('after', restify.auditLogger({
-//   log: bunyan.createLogger({
-//     name: 'audit',
-//     stream: process.stdout,
-//     serializers: {req: bunyan.stdSerializers.req}
-//   }),
-//   body: true
-// }));
 server.post("/update", respond);
 server.get("/value", askValue);
 
