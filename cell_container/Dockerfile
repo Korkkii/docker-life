@@ -1,9 +1,10 @@
 FROM node:latest
 
-COPY package.json /package.json
+COPY cell_container/package.json /package.json
 RUN npm install
 
-COPY cell_index.js /index.js
+COPY cell_container/cell_index.js /index.js
+COPY lib /lib
 
 EXPOSE 8000
 

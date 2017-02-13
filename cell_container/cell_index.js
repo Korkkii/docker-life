@@ -6,24 +6,15 @@ var restify = require("restify");
 var environment = process.env;
 var x = parseInt(environment.X);
 var y = parseInt(environment.Y);
-var size = 5;
+var neighbours = require("./lib/neighbours");
 var server = restify.createServer();
 var Promise = require("bluebird");
 var request = Promise.promisify(require("request"));
 Promise.promisifyAll(request);
 
 function calculateNextGenerationValue(currentGenerationGrid) {
-  var N = 0;
-
-  for (var j = Math.max(0, y - 1); j <= Math.min(y + 1, size - 1); j++) {
-    for (var i = Math.max(0, x - 1); i <= Math.min(x + 1, size - 1); i++) {
-      if (!(i == x && j == y) && currentGenerationGrid[j][i] === true) {
-        N += 1;
-      }
-    }
-  }
-
-  return calculateCellValue(N);
+  var neighbourCount = neighbours.calculate(x, y, currentGenerationGrid);
+  return calculateCellValue(neighbourCount);
 }
 
 function calculateCellValue(neighboursAlive) {

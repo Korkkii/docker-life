@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node game_index.js",
-    "build": "docker build -t dockerlife-cell -f cell_container/Dockerfile cell_container/",
+    "build": "docker build -t dockerlife-cell -f cell_container/Dockerfile .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Henri Korhonen",
