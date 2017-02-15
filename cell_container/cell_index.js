@@ -26,9 +26,11 @@ function calculateCellValue(neighboursAlive) {
   }
 }
 
-function respond(req, res, next) {
+function update(req, res, next) {
   var currentGeneration = req.body.grid;
+  console.log()
   var nextGenValue = calculateNextGenerationValue(currentGeneration);
+  console.log(currentGeneration, nextGenValue)
   res.send({value: nextGenValue});
   if (nextGenValue == state.DEAD) {
     server.close()
@@ -36,8 +38,14 @@ function respond(req, res, next) {
   next();
 }
 
+function ping(req, res, next) {
+  res.send({});
+  next();
+}
+
 server.use(restify.queryParser());
 server.use(restify.bodyParser());
-server.post("/update", respond);
+server.post("/update", update);
+server.get("/ping", ping);
 
 server.listen(8000);

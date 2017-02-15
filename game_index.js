@@ -14,7 +14,7 @@ Promise.promisifyAll(docker);
 
 var args = minimist(process.argv.slice(2));
 var generationCount = args._[0] ? args._[0] : 3;
-var gameGrid = gridLib.create("./blinker.txt").then(printGrid);
+var gameGrid = gridLib.create("./pentadecathlon.txt").then(printGrid);
 setupGenerations(gameGrid, generationCount);
 
 function setupGenerations(gameGrid, amount) {
@@ -31,11 +31,11 @@ function updateGrid(gridPromise) {
 
 function nextGenerationGrid(grid) {
   var currentGenerationGrid = getGenerationGridValues(grid);
-  return Promise.resolve(grid).map((row) => {
-    return Promise.resolve(row).map((cell) => {
-      return Promise.join(containerInfo(cell.id), currentGenerationGrid, updateContainer);
-    });
-  }).thenReturn(grid);
+  return Promise.all(grid.map((row) => {
+    return Promise.all(row.map((container) => {
+      return Promise.join(containerInfo(container.id), currentGenerationGrid, updateContainer)
+    }))
+  })).thenReturn(grid);
 }
 
 function getGenerationGridValues(grid) {
@@ -56,18 +56,26 @@ function containerInfo(containerId) {
 
 function updateContainer(info, grid) {
   var isRunning = info.State.Running;
-  if (isRunning) {
-    return sendUpdateRequest(info, grid);
-  } else {
-    var envVariables = info.Config.Env;
-    var x = parseInt(envVariables[0][2]);
-    var y = parseInt(envVariables[1][2]);
-    var neighbourCount = neighbours.calculate(x, y, grid);
+  var envVariables = info.Config.Env;
+  var x = parseInt(envVariables[0].substr(2));
+  var y = parseInt(envVariables[1].substr(2));
+  var neighbourCount = neighbours.calculate(x, y, grid);
+  var cellLives = neighbourCount == 2 || neighbourCount == 3;
+  var cellRestarts = neighbourCount == 3;
+  // console.log(x, y, neighbourCount, cellLives, cellRestarts)
+  // console.log(envVariables[0], envVariables[0][2], envVariables[0])
 
-    if (neighbourCount == 3) {
-      return startContainerWithId(info.Id);
-    }
+  if (isRunning & !cellLives) {
+    return stopContainerWithId(info.Id);
+  } else if (!isRunning && cellRestarts) {
+    return startContainerWithId(info.Id);
   }
+}
+
+function stopContainerWithId(id) {
+  var container = docker.getContainer(id);
+  var promise = Promise.resolve(container);
+  return gridLib.stopContainer(promise);
 }
 
 function sendUpdateRequest(info, containerGrid) {
@@ -81,8 +89,8 @@ function sendUpdateRequest(info, containerGrid) {
   }
 
   return request.postAsync(postOptions)
-    .spread((result, body) => {})
     .catch((err) => {
+      console.log(err)
       if (err.code === 'ECONNREFUSED') {}
     })
 }
