@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node game_index.js",
     "build": "docker build -t dockerlife-cell -f cell_container/Dockerfile .",
+    "purge": "docker rm -f $(docker ps -aq --filter name=dockerlife_cell)",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Henri Korhonen",

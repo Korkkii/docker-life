@@ -12,10 +12,27 @@ var gridLib = require("./lib/game-grid");
 var docker = new Docker();
 Promise.promisifyAll(docker);
 
-var args = minimist(process.argv.slice(2));
+var args = minimist(process.argv.slice(2), {
+  default: {
+    "f": "./blinker.txt",
+    "d": true
+  },
+  alias: {
+    "f": "file",
+    "d": "delete"
+  },
+  boolean: "d"
+});
+
 var generationCount = args._[0] ? args._[0] : 3;
-var gameGrid = gridLib.create("./pentadecathlon.txt").then(printGrid);
-setupGenerations(gameGrid, generationCount);
+var fileName = args.file;
+var deleteContainersAtEnd = args.delete !== false;
+var gameGrid = gridLib.create(fileName).then(printGrid);
+var game = setupGenerations(gameGrid, generationCount);
+
+if (deleteContainersAtEnd) {
+  addContainerDeletion(game);
+}
 
 function setupGenerations(gameGrid, amount) {
   var grid = gameGrid;
@@ -62,8 +79,6 @@ function updateContainer(info, grid) {
   var neighbourCount = neighbours.calculate(x, y, grid);
   var cellLives = neighbourCount == 2 || neighbourCount == 3;
   var cellRestarts = neighbourCount == 3;
-  // console.log(x, y, neighbourCount, cellLives, cellRestarts)
-  // console.log(envVariables[0], envVariables[0][2], envVariables[0])
 
   if (isRunning & !cellLives) {
     return stopContainerWithId(info.Id);
@@ -113,4 +128,20 @@ function printGrid(grid) {
       return printGrid
     })
     .thenReturn(grid);
+}
+
+function addContainerDeletion(gameGrid) {
+  return gameGrid.finally(() => {
+    return Promise.all(gameGrid.map((row) => {
+      return Promise.all(row.map((container) => {
+        return Promise.join(docker.getContainer(container.id), containerInfo(container.id), (container, data) => {
+          var promise = Promise.resolve(container);
+          if (data.State.Running) {
+            promise = gridLib.stopContainer(promise).thenReturn(promise);
+          }
+          return gridLib.removeContainer(promise);
+        })
+      }))
+    }))
+  });
 }
