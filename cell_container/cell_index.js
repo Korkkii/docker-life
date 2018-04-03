@@ -1,51 +1,48 @@
-"use strict";
+const Enum = require("enum")
+const Promise = require("bluebird")
+const restify = require("restify")
 
-var Enum = require("enum");
-var state = new Enum({'ALIVE' : 1, 'DEAD' : 0});
-var restify = require("restify");
-var environment = process.env;
-var x = parseInt(environment.X);
-var y = parseInt(environment.Y);
-var neighbours = require("./lib/neighbours");
-var server = restify.createServer();
-var Promise = require("bluebird");
-var request = Promise.promisify(require("request"));
-Promise.promisifyAll(request);
+const neighbours = require("./lib/neighbours")
+
+const state = new Enum({'ALIVE' : 1, 'DEAD' : 0})
+const { X, Y } = process.env
+const x = parseInt(X)
+const y = parseInt(Y)
+const server = restify.createServer()
+const request = Promise.promisify(require("request"))
+Promise.promisifyAll(request)
 
 function calculateNextGenerationValue(currentGenerationGrid) {
-  var neighbourCount = neighbours.calculate(x, y, currentGenerationGrid);
-  return calculateCellValue(neighbourCount);
+  const neighbourCount = neighbours.calculate(x, y, currentGenerationGrid)
+  return calculateCellValue(neighbourCount)
 }
 
 function calculateCellValue(neighboursAlive) {
   if (neighboursAlive == 2 || neighboursAlive == 3) {
-    return state.ALIVE;
+    return state.ALIVE
   } else {
     // Dies by overpopulation / underpopulation
-    return state.DEAD;
+    return state.DEAD
   }
 }
 
 function update(req, res, next) {
-  var currentGeneration = req.body.grid;
-  console.log()
-  var nextGenValue = calculateNextGenerationValue(currentGeneration);
-  console.log(currentGeneration, nextGenValue)
-  res.send({value: nextGenValue});
+  const currentGeneration = req.body.grid
+  const nextGenValue = calculateNextGenerationValue(currentGeneration)
+
+  res.send({value: nextGenValue})
   if (nextGenValue == state.DEAD) {
     server.close()
   }
-  next();
 }
 
 function ping(req, res, next) {
-  res.send({});
-  next();
+  res.send({})
 }
 
-server.use(restify.queryParser());
-server.use(restify.bodyParser());
-server.post("/update", update);
-server.get("/ping", ping);
+server.use(restify.queryParser())
+server.use(restify.bodyParser())
+server.post("/update", update)
+server.get("/ping", ping)
 
-server.listen(8000);
+server.listen(8000)
