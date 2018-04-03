@@ -4,7 +4,7 @@
   "description": "A Game of Life using Docker containers as cells",
   "main": "index.js",
   "scripts": {
-    "start": "node game_index.js",
+    "start": "node index.js",
     "build": "docker build -t dockerlife-cell -f cell_container/Dockerfile .",
     "purge": "docker rm -f $(docker ps -aq --filter name=dockerlife_cell)",
     "test": "echo \"Error: no test specified\" && exit 1"
