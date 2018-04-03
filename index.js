@@ -128,9 +128,10 @@ function printGrid(grid) {
     .thenReturn(grid)
 }
 
-function addContainerDeletion(gameGrid) {
+async function addContainerDeletion(gameGrid) {
+  const grid = await gameGrid
   return gameGrid.finally(() => {
-    return Promise.all(gameGrid.map((row) => {
+    return Promise.all(grid.map((row) => {
       return Promise.all(row.map((container) => {
         return Promise.join(docker.getContainer(container.id), containerInfo(container.id), (container, data) => {
           var promise = Promise.resolve(container)
