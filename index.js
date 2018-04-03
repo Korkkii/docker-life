@@ -136,7 +136,7 @@ async function addContainerDeletion(gameGrid) {
         return Promise.join(docker.getContainer(container.id), containerInfo(container.id), (container, data) => {
           var promise = Promise.resolve(container)
           if (data.State.Running) {
-            promise = gridLib.stopContainer(promise).thenReturn(promise)
+            promise = gridLib.stopContainer(promise)
           }
           return gridLib.removeContainer(promise)
         })
