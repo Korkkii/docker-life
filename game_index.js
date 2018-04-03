@@ -14,7 +14,7 @@ Promise.promisifyAll(docker);
 
 var args = minimist(process.argv.slice(2), {
   default: {
-    "f": "./blinker.txt",
+    "f": "./base_states/blinker.txt",
     "d": true
   },
   alias: {

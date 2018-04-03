@@ -24,8 +24,9 @@ The game prints the generation to the console, where `X` is alive and `.` is dea
 ## Changing the initial state
 
 To change the initial state, provide another initial state file using flag `-f`,
- e.g. `npm start -- -f ./beacon.txt`. You can also provide your own base state
- with own file, where `0` means an initially dead cell and `1` a live cell.
+ e.g. `npm start -- -f ./base_states/beacon.txt`. You can also provide your own
+ base state with own file, where `0` means an initially dead cell and `1` a
+ live cell.
 
 ## Preserving Docker containers
 
