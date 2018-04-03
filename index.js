@@ -1,18 +1,18 @@
 "use strict";
 
-var Promise = require("bluebird");
-var Docker = require("dockerode");
+const Promise = require("bluebird");
+const Docker = require("dockerode");
 
-var minimist = require("minimist");
-var request = Promise.promisifyAll(require("request"), {multiArgs: true});
+const minimist = require("minimist");
+const request = Promise.promisifyAll(require("request"), {multiArgs: true});
 
-var neighbours = require("./lib/neighbours");
-var gridLib = require("./lib/game-grid");
+const neighbours = require("./lib/neighbours");
+const gridLib = require("./lib/game-grid");
 
-var docker = new Docker();
+const docker = new Docker();
 Promise.promisifyAll(docker);
 
-var args = minimist(process.argv.slice(2), {
+const args = minimist(process.argv.slice(2), {
   default: {
     "f": "./base_states/blinker.txt",
     "d": true
@@ -24,11 +24,11 @@ var args = minimist(process.argv.slice(2), {
   boolean: "d"
 });
 
-var generationCount = args._[0] ? args._[0] : 3;
-var fileName = args.file;
-var deleteContainersAtEnd = args.delete !== false;
-var gameGrid = gridLib.create(fileName).then(printGrid);
-var game = setupGenerations(gameGrid, generationCount);
+const generationCount = args._[0] ? args._[0] : 3;
+const fileName = args.file;
+const deleteContainersAtEnd = args.delete !== false;
+const gameGrid = gridLib.create(fileName).then(printGrid);
+const game = setupGenerations(gameGrid, generationCount);
 
 if (deleteContainersAtEnd) {
   addContainerDeletion(game);
@@ -47,7 +47,7 @@ function updateGrid(gridPromise) {
 }
 
 function nextGenerationGrid(grid) {
-  var currentGenerationGrid = getGenerationGridValues(grid);
+  const currentGenerationGrid = getGenerationGridValues(grid);
   return Promise.all(grid.map((row) => {
     return Promise.all(row.map((container) => {
       return Promise.join(containerInfo(container.id), currentGenerationGrid, updateContainer)
@@ -66,19 +66,19 @@ function getGenerationGridValues(grid) {
 }
 
 function containerInfo(containerId) {
-  var container = docker.getContainer(containerId);
+  const container = docker.getContainer(containerId);
   Promise.promisifyAll(container);
   return container.inspectAsync()
 }
 
 function updateContainer(info, grid) {
-  var isRunning = info.State.Running;
-  var envVariables = info.Config.Env;
-  var x = parseInt(envVariables[0].substr(2));
-  var y = parseInt(envVariables[1].substr(2));
-  var neighbourCount = neighbours.calculate(x, y, grid);
-  var cellLives = neighbourCount == 2 || neighbourCount == 3;
-  var cellRestarts = neighbourCount == 3;
+  const isRunning = info.State.Running;
+  const envVariables = info.Config.Env;
+  const x = parseInt(envVariables[0].substr(2));
+  const y = parseInt(envVariables[1].substr(2));
+  const neighbourCount = neighbours.calculate(x, y, grid);
+  const cellLives = neighbourCount == 2 || neighbourCount == 3;
+  const cellRestarts = neighbourCount == 3;
 
   if (isRunning & !cellLives) {
     return stopContainerWithId(info.Id);
@@ -88,14 +88,14 @@ function updateContainer(info, grid) {
 }
 
 function stopContainerWithId(id) {
-  var container = docker.getContainer(id);
-  var promise = Promise.resolve(container);
+  const container = docker.getContainer(id);
+  const promise = Promise.resolve(container);
   return gridLib.stopContainer(promise);
 }
 
 function sendUpdateRequest(info, containerGrid) {
-  var hostPort = info.NetworkSettings.Ports["8000/tcp"][0].HostPort;
-  var postOptions = {
+  const hostPort = info.NetworkSettings.Ports["8000/tcp"][0].HostPort;
+  const postOptions = {
     uri: `http://localhost:${hostPort}/update`,
     body: {
       grid: containerGrid
@@ -111,8 +111,8 @@ function sendUpdateRequest(info, containerGrid) {
 }
 
 function startContainerWithId(id) {
-  var container = docker.getContainer(id);
-  var promise = Promise.resolve(container);
+  const container = docker.getContainer(id);
+  const promise = Promise.resolve(container);
   return gridLib.startContainer(promise);
 }
 
